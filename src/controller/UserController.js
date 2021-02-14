@@ -1,24 +1,29 @@
 const User = require('../model/User');
 const Pokemon = require('../model/Pokemon');
 const crypto = require('crypto');
+const validator = require("email-validator");
 
 const users = [];
 class UserController {
     signup(req, res) {
-        const { name, email, password, nomePokemon } = req.body;
+        const { name, email, password } = req.body;
         email.trim();
         password.trim();
         if (name && email && password) {
-            const passwordEncripted = crypto.createHash('md5').update(password).digest("hex")
-            const usersFiltereds = users.filter((user) => {
-                return user.email == email;
-            })
-            if (usersFiltereds.length > 0) {
-                return res.status(400).json({ message: 'E-mail já cadastrado!' })
+            if (validator.validate(email)) {
+                const passwordEncripted = crypto.createHash('md5').update(password).digest("hex")
+                const usersFiltereds = users.filter((user) => {
+                    return user.email == email;
+                })
+                if (usersFiltereds.length > 0) {
+                    return res.status(400).json({ message: 'E-mail já cadastrado!' })
+                } else {
+                    const user = new User(name, email, passwordEncripted);
+                    users.push(user);
+                    return res.status(200).json({ message: 'Usuário criado!' })
+                }
             } else {
-                const user = new User(name, email, passwordEncripted);
-                users.push(user);
-                return res.status(200).json({ message: 'Usuário criado!' })
+                return res.status(400).json({ message: 'E-mail inválido!' })
             }
 
         } else {
